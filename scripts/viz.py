@@ -1,19 +1,26 @@
 """
-Visualisation 3D — matplotlib.
+Visualisation 3D d'un episode — matplotlib.
 
-Usage :
-    python viz.py                        # agent aleatoire
-    python viz.py --policy dqn_best.pt   # politique apprise
-    python viz.py --policy dqn_best.pt --episodes 3
+Usage (depuis la racine du projet) :
+    python scripts/viz.py
+    python scripts/viz.py --policy models/dqn_best.pt
+    python scripts/viz.py --policy models/dqn_best.pt --episodes 3 --save
 """
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+from pathlib import Path
 
 from env import BoidFollowerEnv
 from agent import DQNAgent
+
+OUTPUTS_DIR = Path(__file__).parent.parent / "outputs"
+OUTPUTS_DIR.mkdir(exist_ok=True)
 
 
 def run_episode(env, agent):
@@ -25,6 +32,7 @@ def run_episode(env, agent):
             "agent": env.agent_pos.copy(),
             "cen":   env.sim.centroid().copy(),
             "t":     env.t,
+            "r":     0.0,
         })
         action = agent.act(obs, greedy=True) if agent else env.n_actions // 2
         obs, r, done = env.step(action)
@@ -41,11 +49,11 @@ def animate(frames, box, ep_n):
     ax.set_xlim(0, box); ax.set_ylim(0, box); ax.set_zlim(0, box)
     ax.set_xlabel("x"); ax.set_ylabel("y"); ax.set_zlabel("z")
 
-    sc_b = ax.scatter([], [], [], c="#1855a5", s=18, alpha=0.65, label="boids")
-    sc_c = ax.scatter([], [], [], c="#1855a5", s=55, marker="x", linewidths=2)
-    sc_a = ax.scatter([], [], [], c="#993c1d", s=90, marker="^", label="agent")
-    trail_line, = ax.plot([], [], [], "r-", alpha=0.35, lw=0.9)
-    title = ax.set_title("")
+    sc_b       = ax.scatter([], [], [], c="#1855a5", s=18, alpha=0.65, label="boids")
+    sc_c       = ax.scatter([], [], [], c="#1855a5", s=55, marker="x", linewidths=2, label="centroide")
+    sc_a       = ax.scatter([], [], [], c="#993c1d", s=90, marker="^", label="agent RL")
+    trail_line,= ax.plot([], [], [], "r-", alpha=0.35, lw=0.9)
+    title      = ax.set_title("")
     ax.legend(loc="upper left", fontsize=8)
 
     hist = []
@@ -65,10 +73,7 @@ def animate(frames, box, ep_n):
             trail_line.set_3d_properties(h[:, 2])
 
         dist = np.linalg.norm(ap - cen)
-        title.set_text(
-            f"ep {ep_n+1}  t={f['t']:02d}/50  "
-            f"r={f.get('r', 0):+.2f}  dist={dist:.2f}"
-        )
+        title.set_text(f"ep {ep_n+1}  t={f['t']:02d}/50  r={f['r']:+.2f}  dist={dist:.2f}")
         return sc_b, sc_c, sc_a, trail_line, title
 
     return animation.FuncAnimation(fig, update, frames=len(frames), interval=80, blit=False)
@@ -79,6 +84,7 @@ def main():
     parser.add_argument("--policy",   type=str, default=None)
     parser.add_argument("--episodes", type=int, default=2)
     parser.add_argument("--boids",    type=int, default=15)
+    parser.add_argument("--save",     action="store_true", help="sauvegarde les gifs dans outputs/")
     args = parser.parse_args()
 
     env   = BoidFollowerEnv(n_boids=args.boids)
@@ -90,8 +96,12 @@ def main():
 
     for ep in range(args.episodes):
         frames, total_r = run_episode(env, agent)
-        print(f"episode {ep+1}: reward total = {total_r:.2f}")
+        print(f"episode {ep+1}: reward = {total_r:.2f}")
         ani = animate(frames, env.box, ep)
+        if args.save:
+            path = OUTPUTS_DIR / f"episode_{ep+1}.gif"
+            ani.save(str(path), writer="pillow", fps=15)
+            print(f"gif -> {path}")
         plt.tight_layout()
         plt.show()
 
