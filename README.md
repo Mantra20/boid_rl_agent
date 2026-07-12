@@ -60,7 +60,7 @@ python scripts/viz.py --policy models/dqn_best.pt --episodes 3 --save
 
 ## Résultats
 
-Après 4 000 épisodes (≈ 2 min CPU) :
+Après 4 000 épisodes :
 
 | Métrique | Valeur |
 |----------|--------|
