@@ -1,4 +1,4 @@
-# Boid RL Agent — 3D swarm following with DQN
+# Boid RL Agent; 3D swarm following with DQN
 
 Un agent RL (Double DQN) apprend à suivre un swarm de boids en 3D.
 
@@ -50,9 +50,9 @@ python scripts/viz.py --policy models/dqn_best.pt --episodes 3 --save
 | Actions | 27 discrètes : `{-1, 0, +1}³` sur l'accélération |
 | Reward | −dist_normalisée + 0.4×alignement + 0.5×bonus_dans_nuage − pénalité_mur |
 
-## Agent — Double DQN
+## Agent DQN
 
-- Architecture MLP : 12 → 128 → 128 → 27
+- Architecture MLP : de 12  à 128 puis 128 à 27
 - Replay buffer : 30 000 transitions
 - Target network synchronisé toutes les 200 steps
 - ε-greedy décroissant linéairement sur `eps_decay` épisodes
@@ -64,7 +64,7 @@ Après 4 000 épisodes (≈ 2 min CPU) :
 
 | Métrique | Valeur |
 |----------|--------|
-| Reward moyen (100 ep) | ~+19 |
-| Pas dans le swarm / 50 | ~40 |
+| Reward moyen (100 ep) | environ 19 |
+| Pas dans le swarm / 50 | environ 40 |
 
 ![courbes](outputs/training_curves.png)
