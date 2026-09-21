@@ -67,4 +67,4 @@ Après 4 000 épisodes :
 | Reward moyen (100 ep) | environ 19 |
 | Pas dans le swarm / 50 | environ 40 |
 
-![courbes](outputs/training_curves.png)
+
